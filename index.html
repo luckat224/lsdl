@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề Cương Ôn Tập Lịch Sử & Địa Lí 6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* --- Kiểu nút tùy chọn --- */
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.9; }
+
+        /* --- Kiểu phản hồi --- */
+        .correct {
+            background-color: #dcfce7 !important; border-color: #22c55e !important;
+            color: #15803d; font-weight: 600;
+        }
+        .incorrect {
+            background-color: #fee2e2 !important; border-color: #ef4444 !important;
+            color: #b91c1c; font-weight: 600;
+        }
+
+        /* --- Kiểu input tự luận/điền từ --- */
+        .short-answer-input.correct { border-color: #22c55e; background-color: #dcfce7; }
+        .short-answer-input.incorrect { border-color: #ef4444; background-color: #fee2e2; }
+
+        /* --- Kiểu Đúng/Sai (TF) --- */
+        .tf-input { display: none; }
+        .tf-label {
+            cursor: pointer; padding: 0.75rem 1.5rem; border: 1px solid #d1d5db;
+            border-radius: 0.5rem; transition: all 0.2s;
+        }
+        .tf-input:checked + .tf-label {
+            background-color: #dbeafe; border-color: #3b82f6; font-weight: 600;
+        }
+        .tf-input:disabled + .tf-label { cursor: not-allowed; opacity: 0.8; }
+        .tf-label.correct {
+            background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d;
+        }
+        .tf-label.incorrect {
+            background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c;
+        }
+
+        /* --- Thẻ câu hỏi --- */
+        .quiz-card {
+            background-color: white; border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem; padding: 1.5rem;
+        }
+        
+        /* --- Nút Reset (cho từng câu) --- */
+        .question-reset-btn {
+            position: absolute; top: 1rem; right: 1rem; color: #6b7280;
+            background: #f3f4f6; border-radius: 9999px; width: 2rem; height: 2rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .question-reset-btn:hover { color: #1f2937; background: #e5e7eb; }
+
+        /* --- Kiểu Tabs (Đã chỉnh sửa) --- */
+        .tab-btn {
+            padding: 0.5rem 1rem; /* Tăng padding 1 chút */
+            font-size: 0.875rem; /* text-sm */
+            font-medium; border-bottom: 4px solid transparent;
+            color: #6b7280;
+        }
+        .tab-btn:hover {
+            background-color: #e5e7eb;
+        }
+        .tab-btn.active {
+            color: #1d4ed8;
+            border-bottom-color: #2563eb;
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* --- Thẻ câu hỏi tĩnh (cho tab Lỗi Sai) --- */
+        .static-card {
+            background: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem; padding: 1.5rem;
+        }
+        .static-card-option {
+            padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-top: 0.5rem;
+        }
+        .static-card-option.correct {
+            border-color: #22c55e; background-color: #dcfce7; color: #15803d; font-weight: 600;
+        }
+
+        /* --- Kiểu cho Sub-header (Số liệu) --- */
+        .subheader-panel {
+            display: none;
+        }
+        .subheader-panel.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="sticky top-0 z-50 bg-gray-100/95 backdrop-blur-sm shadow-md">
+        
+        <div class="container max-w-3xl mx-auto px-4 sm:px-6 md:px-8 pt-2">
+            
+            <h1 class="text-xl font-bold text-center text-blue-700 mb-2">Đề Cương Ôn Tập Lịch Sử & Địa Lí 6</h1>
+
+            <nav class="flex border-b border-gray-300">
+                <button id="tab-btn-all" class="tab-btn active" data-tab="all">
+                    <i class="fas fa-list-ul"></i> Tất Cả Câu Hỏi
+                </button>
+                <button id="tab-btn-wrong" class="tab-btn" data-tab="wrong">
+                    <i class="fas fa-exclamation-triangle"></i> Những Câu Hay Sai
+                </button>
+                <button id="tab-btn-redo" class="tab-btn" data-tab="redo">
+                    <i class="fas fa-redo"></i> Làm Lại Câu Sai (MC)
+                </button>
+            </nav>
+        </div>
+
+        <div class="container max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-2">
+            
+            <div id="subheader-all" class="subheader-panel active">
+                <div id="controls-all" class="flex flex-col sm:flex-row gap-2 justify-center mb-2">
+                    <button id="shuffle-btn" class="w-full sm:w-auto mb-1 sm:mb-0 bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg shadow transition duration-200 flex-1 text-sm">
+                        <i class="fas fa-random"></i> Đảo câu hỏi & đáp án
+                    </button>
+                    <button id="total-reset-btn" class="w-full sm:w-auto mb-1 sm:mb-0 bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-lg shadow transition duration-200 flex-1 text-sm">
+                        <i class="fas fa-sync-alt"></i> Reset (Tab này)
+                    </button>
+                </div>
+                <div id="progress-container-all" class="bg-white p-2 rounded-lg shadow text-center">
+                    <span id="progress-text-all" class="text-sm font-medium text-gray-700">Đã hoàn thành: 0 / 0</span>
+                    <span class="mx-2 text-gray-300">|</span>
+                    <span id="score-tracker-all" class="text-sm font-medium text-red-600">Câu sai: 0</span>
+                </div>
+            </div>
+
+            <div id="subheader-wrong" class="subheader-panel">
+                <div class="bg-white p-2 rounded-lg shadow text-center">
+                    <p class="text-sm font-medium text-gray-700 mb-2">
+                        Đây là danh sách <strong id="wrong-history-count" class="text-red-600">0</strong> câu bạn đã từng làm sai.
+                    </p>
+                    <button id="clear-history-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-lg shadow transition duration-200 text-sm">
+                        <i class="fas fa-trash-alt"></i> Xóa Lịch Sử Lỗi Sai
+                    </button>
+                </div>
+            </div>
+
+            <div id="subheader-redo" class="subheader-panel">
+                <div id="controls-redo" class="flex flex-col sm:flex-row gap-2 justify-center mb-2">
+                    <button id="shuffle-btn-redo" class="w-full sm:w-auto mb-1 sm:mb-0 bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg shadow transition duration-200 flex-1 text-sm">
+                        <i class="fas fa-random"></i> Đảo câu hỏi & đáp án
+                    </button>
+                    <button id="reset-btn-redo" class="w-full sm:w-auto mb-1 sm:mb-0 bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-lg shadow transition duration-200 flex-1 text-sm">
+                        <i class="fas fa-sync-alt"></i> Reset (Tab này)
+                    </button>
+                </div>
+                <div id="progress-container-redo" class="bg-white p-2 rounded-lg shadow text-center">
+                    <span id="progress-text-redo" class="text-sm font-medium text-gray-700">Đã hoàn thành: 0 / 0</span>
+                    <span class="mx-2 text-gray-300">|</span>
+                    <span id="score-tracker-redo" class="text-sm font-medium text-red-600">Câu sai: 0</span>
+                </div>
+            </div>
+        </div>
+        </header>
+
+    <main class="container max-w-3xl mx-auto p-4 sm:p-6 md:p-8">
+
+        <div id="tab-panel-all" class="tab-panel active">
+            <div id="quiz-container-all">
+                </div>
+        </div>
+
+        <div id="tab-panel-wrong" class="tab-panel">
+            <div id="quiz-container-wrong">
+                </div>
+        </div>
+
+        <div id="tab-panel-redo" class="tab-panel">
+            <div id="quiz-container-redo">
+                </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Hàm lưu tiến độ
+        function saveProgress(quiz) {
+            const progress = {
+                questionStatus: quiz.questionStatus,
+                incorrectQuestions: Array.from(quiz.incorrectQuestions),
+                quizData: quiz.quizData  // Lưu thêm dữ liệu câu hỏi
+            };
+            localStorage.setItem(`quiz-progress-${quiz.instanceId}`, JSON.stringify(progress));
+        }
+
+        // Hàm tải tiến độ
+        function loadProgress(quiz) {
+            const savedProgress = localStorage.getItem(`quiz-progress-${quiz.instanceId}`);
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                quiz.questionStatus = progress.questionStatus || [];
+                quiz.incorrectQuestions = new Set(progress.incorrectQuestions || []);
+                if (progress.quizData) {
+                    quiz.quizData = progress.quizData;  // Khôi phục dữ liệu câu hỏi
+                }
+                return true;
+            }
+            return false;
+        }
+
+        // --- DỮ LIỆU CÂU HỎI GỐC (LỊCH SỬ & ĐỊA LÍ 6) ---
+        const originalQuizData = [
+            // === A. TRẮC NGHIỆM LỊCH SỬ ===
+            {
+                type: 'mc',
+                question: 'Câu 1. Lịch sử là gì?',
+                options: ['Những truyện thần thoại', 'Những gì diễn ra trong quá khứ', 'Những truyền thuyết', 'Sự tưởng tượng của con người về tương lai'],
+                answer: 'Những gì diễn ra trong quá khứ'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 2. Cơ sở nào để con người xác định được thời gian và tạo ra lịch?',
+                options: ['Quan sát sự chuyển động của mặt trăng, mặt trời', 'Đếm số ngày trong một năm', 'Quan sát các hiện tượng xã hội', 'Dựa trên lịch của người nguyên thủy'],
+                answer: 'Quan sát sự chuyển động của mặt trăng, mặt trời'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 3. Những chiếc răng của Người tối cổ được tìm thấy ở đâu trên đất nước Việt Nam?',
+                options: ['Núi Đọ (Thanh Hoá)', 'Xuân Lộc (Đồng Nai)', 'An Khê (Gia Lai)', 'Thẩm Khuyên, Thẩm Hai (Lạng Sơn)'],
+                answer: 'Thẩm Khuyên, Thẩm Hai (Lạng Sơn)'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 4. Một trong những biểu hiện về đời sống tinh thần của người nguyên thủy là?',
+                options: ['Biết trồng trọt, chăn nuôi', 'Biết săn bắt, hái lượm', 'Biết tạo ra lửa', 'Có tục chôn người chết'],
+                answer: 'Có tục chôn người chết'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 5. Cư dân Ai Cập cổ đại đã viết chữ trên?',
+                options: ['Đất sét', 'Mai rùa', 'Thẻ tre', 'Giấy Pa-pi-rút'],
+                answer: 'Giấy Pa-pi-rút'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 6. Nguyên nhân sâu xa nào dẫn tới sự tan rã của xã hội nguyên thủy?',
+                options: ['Sự phát triển đời sống tinh thần của con người', 'Công cụ đá đã phát triển', 'Phát minh ra lửa của người tối cổ', 'Công cụ kim loại được phát hiện và sử dụng phổ biến'],
+                answer: 'Công cụ kim loại được phát hiện và sử dụng phổ biến'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 7. Nhà nước Ai Cập cổ đại ra đời vào khoảng thời gian nào?',
+                options: ['3200 TCN', '3300 TCN', '3100 TCN', '3000 TCN'],
+                answer: '3000 TCN'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 8. Công cụ lao động và vũ khí bằng kim loại ra đời sớm nhất ở?',
+                options: ['Tây Á, Bắc Phi', 'Tây Á, Nam Phi', 'Tây Á, Trung Phi', 'Tây Á, Nam Á'],
+                answer: 'Tây Á, Bắc Phi'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 9. Môn Lịch Sử là môn học tìm hiểu về:',
+                options: ['Lịch sử loài người', 'Các thiên thể trong vũ trụ', 'Các dạng địa hình trong tự nhiên', 'Quy luật chuyển động của Trái Đất'],
+                answer: 'Lịch sử loài người'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 10. 1000 năm theo năm công lịch được gọi là:',
+                options: ['Một thập kỉ', 'Một thế kỉ', 'Một thiên niên kỉ', 'Một năm'],
+                answer: 'Một thiên niên kỉ'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 11. Yếu tố nào đóng vai trò quyết định thúc đẩy quá trình tiến hóa từ vượn thành người:',
+                options: ['Môi trường', 'Lao động', 'Thức ăn', 'Chọn lọc tự nhiên'],
+                answer: 'Lao động'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 12. Dấu tích của một nền nông nghiệp sơ khai ở Việt Nam xuất hiện sớm nhất ở đâu?',
+                options: ['Hòa Bình', 'An Khê', 'Núi Đọ', 'Quỳnh Văn'],
+                answer: 'Hòa Bình'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 13. Cách đây hơn 4000 năm, xã hội nguyên thủy ở Việt Nam có những chuyển biến quan trọng, gắn với nền văn hóa:',
+                options: ['Sơn Vi', 'Phùng Nguyên', 'Xuân Lộc', 'Núi Đọ'],
+                answer: 'Phùng Nguyên'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 14. Chữ viết của người Ai Cập cổ đại là:',
+                options: ['Chữ Phạn', 'Chữ số La Mã', 'Chữ tượng hình', 'Chữ hình nêm'],
+                answer: 'Chữ tượng hình'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 15. Nhà nước Ai Cập cổ đại sụp đổ vào thời gian nào?',
+                options: ['Năm 20 TCN', 'Năm 30 TCN', 'Năm 40 TCN', 'Năm 50 TCN'],
+                answer: 'Năm 30 TCN'
+            },
+            {
+                type: 'mc',
+                question: 'Câu 16. Kim loại đầu tiên con người phát hiện là?',
+                options: ['Đồng đỏ', 'Đồng thau', 'Thiếc', 'Sắt'],
+                answer: 'Đồng đỏ'
+            },
+            {
+                type: 'tf',
+                question: 'Câu 17. Hãy chọn Đúng hoặc Sai cho câu sau đây: Đọc đoạn thông tin sau:Nhờ có công cụ lao động bằng kim loại, vào cuối thời nguyên thủy, con người có thể làm ra sản phẩm dư thừa. Những sản phẩm như này thuộc về một số người. Quá trình phân hóa và tan rã của xã hội nguyên thủy ở các nơi trên thế giới không giống nhau. Vào cuối thời nguyên thủy, cư dân phương Đông sinh sống và làm nông nghiệp chủ yếu bên các dòng sông, đất phù sa màu mỡ, thuận tiện để sử dụng công cụ đá và đồng đỏ. Trong điều kiện đó, họ thường sống quần tụ, cùng đào mương, đắp đê, chống giặc ngoại xăm. Do vậy, sự liên kết giữa các cộng đồng và nhiều tập tục của xã hội nguyên thủy vẫn tiếp tục được bảo lưu.',
+                
+                statements: [
+                    { text: 'a. Nhờ có công cụ lao động bằng kim loại, vào cuối thời nguyên thủy, con người có thể làm ra sản phẩm dư thừa.', answer: true },
+                    { text: 'b. Những sản phẩm dư thừa trong xã hội nguyên thủy đều thuộc về mọi người trong cộng đồng, không có sự phân hóa.', answer: false },
+                    { text: 'c. Quá trình phân hóa và tan rã của xã hội nguyên thủy ở các nơi trên thế giới diễn ra giống nhau.', answer: false },
+                    { text: 'd. Ở phương Đông, cư dân cuối thời nguyên thủy thường sinh sống ven các dòng sông, cùng nhau đào mương, đắp đê và chống giặc ngoại xâm.', answer: true }
+                ]
+            },
+            // Câu 18 Lịch sử bị bỏ qua
+            {
+                type: 'tf',
+                question: 'Câu 19. Hãy chọn Đúng hoặc Sai cho câu sau đây: Đọc đoạn thông tin sau: Ai Cập cổ đại nằm ở phía đông bắc châu Phi, là vùng đất dài nằm dọc hai bên bờ sông Nin. Phía bắc là vùng Hạ Ai Cập, nơi sông Nin đổ ra biển Địa Trung Hải. Phía nam là vùng Thượng Ai Cập với nhiều núi và đồi cát. Phía đông và phía tây giáp sa mạc. Sông Nin mang đến nguồn nước thuận lợi cho sản xuất nông nghiệp của Ai Cập cổ đại.',
+                statements: [
+                    { text: 'a. Ai Cập cổ đại nằm ở phía đông bắc châu Phi.', answer: true }, // Trong ảnh check Sai, nhưng câu 19d check Đúng. Câu 19a rõ ràng là Đúng theo văn bản. Giả sử người check Sai là nhầm.
+                    { text: 'b. Phía nam là vùng Hạ Ai Cập, phía bắc là vùng Thượng Ai Cập.', answer: false },
+                    { text: 'c. Phía đông và phía tây không giáp sa mạc.', answer: false },
+                    { text: 'd. Sông Nin mang đến nguồn nước thuận lợi cho sản xuất nông nghiệp của Ai Cập cổ đại.', answer: true }
+                ]
+            },
+            // Câu 20 Lịch sử bị bỏ qua
+
+            // === B. TRẮC NGHIỆM ĐỊA LÍ ===
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 1. Các đường nối liền hai điểm Cực Bắc và Cực Nam trên bề mặt quả Địa Cầu là những đường?',
+                options: ['Kinh tuyến', 'Vĩ tuyến', 'Kinh tuyến gốc', 'Vĩ tuyến gốc'],
+                answer: 'Kinh tuyến'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 2. Đường kinh tuyến gốc 0° đi qua đài thiên văn Grin-uýt thuộc quốc gia nào sau đây?',
+                options: ['Anh', 'Đức', 'Bồ Đào Nha', 'Tây Ban Nha'],
+                answer: 'Anh'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 3. Để thể hiện ranh giới quốc gia, người ta dùng loại kí hiệu?',
+                options: ['Điểm', 'Đường', 'Diện tích', 'Hình học'],
+                answer: 'Đường'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 4. Trái Đất có dạng hình gì?',
+                options: ['Hình cầu', 'Hình tròn', 'Hình vuông', 'Hình chữ nhật'],
+                answer: 'Hình cầu'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 5. Muốn xác định phương hướng trên bản đồ cần phải dựa vào?',
+                options: ['Bảng chú giải, tỉ lệ bản đồ', 'Các đường kinh tuyến, vĩ tuyến', 'Các mũi tên chỉ hướng', 'Mép bên trái tờ bản đồ'],
+                answer: 'Các đường kinh tuyến, vĩ tuyến'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 6. Theo thứ tự xa dần xích đạo, Trái Đất nằm ở vị trí thứ?',
+                options: ['Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6'],
+                answer: 'Thứ 3'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 7. Thời gian Trái Đất chuyển động quanh trục tưởng tượng hết một vòng là?',
+                options: ['365 ngày', '1 ngày đêm', '366 ngày', '1 đêm'],
+                answer: '1 ngày đêm'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 8. Hướng tự quay quanh trục của Trái Đất là?',
+                options: ['Đông sang Tây', 'Phải sang Trái', 'Bắc xuống Nam', 'Tây sang Đông'],
+                answer: 'Tây sang Đông'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 9. Đường Xích đạo chia quả Địa cầu thành?',
+                options: ['Nửa cầu Đông và nửa cầu Tây', 'Nửa cầu Bắc và nửa cầu Tây', 'Nửa cầu Đông và nửa cầu Nam', 'Nửa cầu Bắc và nửa cầu Nam'],
+                answer: 'Nửa cầu Bắc và nửa cầu Nam'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 10. Kinh tuyến gốc và vĩ tuyến gốc có điểm chung là cùng mang số độ bằng?',
+                options: ['0°', '90°', '180°', '60°'],
+                answer: '0°'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 11. Kí hiệu bản đồ có mấy loại?',
+                options: ['2 loại', '3 loại', '4 loại', '5 loại'],
+                answer: '3 loại'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 12. Khi biểu hiện các vùng trồng trọt và chăn nuôi thường dùng loại kí hiệu nào?',
+                options: ['Hình học', 'Đường', 'Điểm', 'Diện tích'],
+                answer: 'Diện tích'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 13. Theo quy ước, đầu phía trên của kinh tuyến gốc chỉ hướng nào?',
+                options: ['Tây', 'Bắc', 'Nam', 'Đông'],
+                answer: 'Bắc'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 14. Bán kính Trái Đất tại Xích đạo có độ dài là?',
+                options: ['6378 km', '6376 km', '6387 km', '6388 km'],
+                answer: '6378 km'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 15. Bề mặt Trái Đất được chia làm bao nhiêu khu vực giờ?',
+                options: ['12 khu vực giờ', '24 khu vực giờ', '9 khu vực giờ', '6 khu vực giờ'],
+                answer: '24 khu vực giờ'
+            },
+            {
+                type: 'mc',
+                question: 'ĐỊA LÍ - Câu 16. Trên mặt phẳng quỹ đạo, trục Trái Đất nghiêng một góc?',
+                options: ['23°27\'', '32°27\'', '66°33\'', '23°33\''],
+                answer: '66°33\'' // Câu này người dùng khoanh C (66 33) nhưng A (23 27) cũng là một góc nghiêng quan trọng. Tùy cách hỏi "nghiêng (so với mặt phẳng quỹ đạo)" hay "nghiêng (so với đường thẳng vuông góc)". Thường thì 23 27 là góc nghiêng của trục, 66 33 là góc với mặt phẳng quỹ đạo. Tuy nhiên, theo đáp án khoanh C, tôi sẽ để là C.
+            },
+            {
+                type: 'tf',
+                question: 'ĐỊA LÍ - Câu 17. Hãy chọn Đúng hoặc Sai cho câu sau đây: Đọc đoạn thông tin sau: Quả Địa Cầu là mô hình thu nhỏ của Trái Đất dưới dạng hình cầu. Một mạng lưới các đường tưởng tượng bao phủ toàn bộ quả Địa Cầu giúp chúng ta có thể xác định được vị trí của tất cả các điểm gọi là hệ thống kinh, vĩ tuyến. Kinh tuyến là các đường nối cực Bắc với cực Nam trên bề mặt quả Địa Cầu. Vĩ tuyến là các đường tròn bao quanh quả Địa Cầu, song song với đường Xích đạo. Xích đạo hay vĩ tuyến gốc (0°), chia quả Địa Cầu thành hai phần bằng nhau, phần phía bắc là bán cầu Bắc và phần phía nam là bán cầu Nam.',
+                statements: [
+                    { text: 'a. Quả Địa Cầu không phải mô hình thu nhỏ của Trái Đất dưới dạng hình cầu.', answer: false },
+                    { text: 'b. Kinh tuyến là các đường nối cực Bắc với cực Nam trên bề mặt quả Địa Cầu.', answer: true },
+                    { text: 'c. Vĩ tuyến là các đường tròn bao quanh quả Địa Cầu, không song song với đường Xích đạo.', answer: false },
+                    { text: 'd. Xích đạo hay vĩ tuyến gốc (0°), chia quả Địa Cầu thành hai phần bằng nhau.', answer: true }
+                ]},
+            // Câu 18 Địa lí bị bỏ qua
+            {
+                type: 'tf',
+                question: 'ĐỊA LÍ - Câu 19. Hãy chọn Đúng hoặc Sai cho câu sau đây: Đọc đoạn thông tin sau: Các địa điểm nằm trên cùng một kinh tuyến sẽ có cùng một giờ, đó gọi là giờ địa phương hay giờ Mặt Trời. Để tiện cho việc tính giờ và giao dịch quốc tế, người ta thống nhất cho từng khu vực. Giờ đó gọi là giờ khu vực. Bề mặt Trái Đất được chia làm 24 khu vực giờ khác nhau. Mỗi khu vực giờ là một múi giờ, tương ứng với 15° kinh tuyến. ',
+                statements: [
+                    { text: 'a. Các địa điểm nằm trên cùng một kinh tuyến sẽ có cùng một giờ.', answer: true },
+                    { text: 'b. Để tiện cho việc tính giờ và giao dịch quốc tế, người ta không quy định giờ thống nhất cho từng khu vực.', answer: false },
+                    { text: 'c. Bề mặt Trái Đất được chia ra làm 24 khu vực giờ khác nhau.', answer: true }, // Ảnh check Sai, nhưng văn bản ghi rõ "24 khu vực giờ". Theo văn bản.
+                    { text: 'd. Mỗi khu vực giờ là một múi giờ, tương ứng với 15° kinh tuyến.', answer: true }  // Ảnh check Sai, nhưng đây là kiến thức chuẩn. Theo kiến thức chuẩn.
+                ]
+            },
+
+            // === C. TỰ LUẬN ===
+            {
+                type: 'fill',
+                question: 'TỰ LUẬN - Câu 1. Một trận bóng đá được tường thuật trực tiếp từ thủ đô London nước Anh (múi giờ số 0) vào lúc 13h ngày 15/5/2022. Khi đó ở Hà Nội (múi giờ 7), Bắc Kinh (múi giờ 8), Tokyo (múi giờ 9) là mấy giờ?',
+                fills: [
+                    { q: '- Hà Nội:', a: '20', s: 'giờ' },
+                    { q: '- Bắc Kinh:', a: '21', s: 'giờ' },
+                    { q: '- Tokyo:', a: '22', s: 'giờ' }
+                ]
+            },
+            // Tự luận 2 bị bỏ qua vì thiếu context câu hỏi
+            {
+                type: 'short',
+                question: 'TỰ LUẬN - Câu 2a. Em hãy liệt kê 4 địa điểm có dấu tích người tối cổ ở Việt Nam và In-đô-nê-xi-a?',
+                explanation: '<b>Việt Nam:</b> An Khê (Gia Lai), Thẩm Khuyên (Lạng Sơn), Thẩm Hai (Lạng Sơn), Núi Đọ (Thanh Hóa).<br><b>In-đô-nê-xi-a:</b> Tri - Nio, Li - ang - Bua.',
+                keywords: ['an khê', 'thẩm khuyên', 'thẩm hai', 'núi đọ', 'Tri - Nio', 'Li - ang -Bua']
+            },
+            {
+                type: 'short',
+                question: 'TỰ LUẬN - Câu 2b. Việc phát hiện ra công cụ đá và răng hóa thạch của Người tối cổ ở Việt Nam chứng tỏ điều gì?',
+                explanation: 'Chứng tỏ người tối cổ xuất hiện khá sớm ở Việt Nam.',
+                keywords: ['Chứng tỏ người tối cổ xuất hiện khá sớm ở Việt Nam']
+            },
+            {
+                type: 'short',
+                question: 'TỰ LUẬN - Câu 3a. Nguyên nhân dẫn đến sự tan rã của xã hội nguyên thủy?',
+                explanation: 'Sự xuất hiện của công cụ bằng kim loại.',
+                keywords: ['Sự xuất hiện của công cụ bằng kim loại']
+            },
+            {
+                type: 'short',
+                question: 'TỰ LUẬN - Câu 3b. Vai trò của kim loại đối với sự chuyển biến và phân hóa từ xã hội nguyên thủy sang xã hội có giai cấp?',
+                explanation: '- Năng suất lao động tăng, của cải dư thừa <br>- Phân hóa giàu nghèo, tạo tiền đề cho sự ra đời của xã hội có giai cấp',
+                keywords: ['năng xuất lao động tăng', 'của cải dư thừa', 'phân hóa giàu nghèo', 'xã hội có giai cấp']
+            }
+        ];
+
+        // --- DỮ LIỆU GỐC (THÊM CHỈ SỐ GỐC) ---
+        // Rất quan trọng để theo dõi lỗi sai ngay cả khi đã xáo trộn
+        const originalDataWithIndices = originalQuizData.map((q, i) => ({
+            ...q,
+            originalIndex: i // Thêm index gốc vào mỗi câu hỏi
+        }));
+
+
+        // --- BIẾN TRẠNG THÁI TOÀN CỤC ---
+        let wrongQuestionHistory = new Set(); // Set chứa các 'originalIndex' của câu sai
+        let mainQuiz; // Instance cho tab "Tất Cả"
+        let redoQuiz; // Instance cho tab "Làm Lại"
+
+        // --- LỚP QUẢN LÝ QUIZ (Đã refactor) ---
+        class Quiz {
+            constructor(questionsData, containerId, progressTextId, scoreTrackerId) {
+                this.originalData = JSON.parse(JSON.stringify(questionsData)); // Dữ liệu gốc cho instance này
+                this.quizData = JSON.parse(JSON.stringify(questionsData)); // Dữ liệu làm việc (có thể xáo trộn)
+                
+                this.container = document.getElementById(containerId);
+                this.progressText = document.getElementById(progressTextId);
+                this.scoreTracker = document.getElementById(scoreTrackerId);
+                
+                this.questionStatus = [];
+                this.incorrectQuestions = new Set();
+                this.instanceId = containerId; // Dùng để tạo ID duy nhất cho các input radio
+
+                // Tải dữ liệu câu hỏi đã lưu (nếu có) để giữ nguyên thứ tự đã xáo trộn
+                const savedProgress = localStorage.getItem(`quiz-progress-${this.instanceId}`);
+                if (savedProgress) {
+                    const progress = JSON.parse(savedProgress);
+                    if (progress.quizData) {
+                        this.quizData = progress.quizData;
+                    }
+                }
+            }
+
+            /**
+             * Khởi tạo và vẽ quiz lên DOM
+             */
+            init() {
+                this.container.innerHTML = '';
+                
+                // Tải tiến độ trước khi khởi tạo
+                const savedProgress = localStorage.getItem(`quiz-progress-${this.instanceId}`);
+                if (!savedProgress) {
+                    this.questionStatus = new Array(this.quizData.length).fill(null);
+                    this.incorrectQuestions.clear();
+                } else {
+                    const progress = JSON.parse(savedProgress);
+                    this.questionStatus = progress.questionStatus || new Array(this.quizData.length).fill(null);
+                    this.incorrectQuestions = new Set(progress.incorrectQuestions || []);
+                }
+
+                // Khôi phục trạng thái cho các câu đã làm
+                const hasProgress = savedProgress ? true : false;
+
+                if (this.quizData.length === 0) {
+                    this.container.innerHTML = `<p class="text-center text-gray-500 italic">Không có câu hỏi nào để hiển thị.</p>`;
+                }
+
+                this.quizData.forEach((question, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'quiz-card relative';
+                    card.dataset.index = index; // Index trong instance này
+
+                    const resetBtn = document.createElement('button');
+                    resetBtn.className = 'question-reset-btn';
+                    resetBtn.title = 'Làm lại câu này';
+                    resetBtn.innerHTML = '<i class="fas fa-sync-alt fa-sm"></i>';
+                    resetBtn.onclick = () => this.resetQuestion(index);
+                    card.appendChild(resetBtn);
+
+                    const questionTitle = document.createElement('h2');
+                    questionTitle.className = 'text-xl font-semibold mb-2 pr-10';
+                    questionTitle.innerHTML = question.question;
+                    card.appendChild(questionTitle);
+
+                    if (question.imageNote) {
+                        const note = document.createElement('p');
+                        note.innerText = question.imageNote;
+                        note.className = 'text-sm text-gray-500 italic mb-4';
+                        card.appendChild(note);
+                    }
+
+                    switch (question.type) {
+                        case 'mc':
+                            this.createMultipleChoice(question, index, card);
+                            break;
+                        case 'tf':
+                            this.createTrueFalse(question, index, card);
+                            break;
+                        case 'short':
+                            this.createShortAnswer(question, index, card);
+                            break;
+                        case 'fill':
+                            this.createFillInBlank(question, index, card);
+                            break;
+                    }
+                    
+                    this.container.appendChild(card);
+
+                    // Khôi phục trạng thái nếu câu này đã được trả lời
+                    if (hasProgress && this.questionStatus[index]) {
+                        const status = this.questionStatus[index];
+                        if (question.type === 'mc') {
+                            const selectedOption = this.quizData[index].selectedOption;
+                            const buttons = card.querySelectorAll('.option-btn');
+                            buttons.forEach(btn => {
+                                btn.disabled = true;
+                                if (btn.textContent === selectedOption) {
+                                    btn.classList.add(status === 'correct' ? 'correct' : 'incorrect');
+                                } else if (status === 'incorrect' && btn.textContent === question.answer) {
+                                    btn.classList.add('correct');
+                                }
+                            });
+                        } else if (question.type === 'tf') {
+                            // Khôi phục lựa chọn người dùng cho các câu đúng/sai
+                            const userAnswers = (this.quizData[index] && this.quizData[index].userAnswers) ? this.quizData[index].userAnswers : [];
+                            question.statements.forEach((statement, s_index) => {
+                                const trueBtn = card.querySelector(`#tf-${this.instanceId}-${index}-${s_index}-true`);
+                                const falseBtn = card.querySelector(`#tf-${this.instanceId}-${index}-${s_index}-false`);
+                                const trueLabel = card.querySelector(`label[for='tf-${this.instanceId}-${index}-${s_index}-true']`);
+                                const falseLabel = card.querySelector(`label[for='tf-${this.instanceId}-${index}-${s_index}-false']`);
+
+                                const ua = (userAnswers.length > s_index) ? userAnswers[s_index] : null;
+
+                                if (ua === true) {
+                                    trueBtn.checked = true;
+                                    if (statement.answer === true) {
+                                        trueLabel.classList.add('correct');
+                                    } else {
+                                        trueLabel.classList.add('incorrect');
+                                        // tô đáp án đúng để người dùng biết
+                                        falseLabel.classList.add('correct');
+                                    }
+                                } else if (ua === false) {
+                                    falseBtn.checked = true;
+                                    if (statement.answer === false) {
+                                        falseLabel.classList.add('correct');
+                                    } else {
+                                        falseLabel.classList.add('incorrect');
+                                        trueLabel.classList.add('correct');
+                                    }
+                                } else {
+                                    // Nếu không có lựa chọn lưu, chỉ tô đáp án đúng khi câu đã có trạng thái hoàn thành
+                                    if (this.questionStatus[index] === 'correct' || this.questionStatus[index] === 'incorrect') {
+                                        if (statement.answer) trueLabel.classList.add('correct'); else falseLabel.classList.add('correct');
+                                    }
+                                }
+
+                                trueBtn.disabled = true;
+                                falseBtn.disabled = true;
+                            });
+                            card.querySelector('.check-btn')?.classList.add('hidden');
+                        }
+                        // Khôi phục cho 'short' và 'fill'
+                        else if (question.type === 'short') {
+                            const input = card.querySelector('textarea');
+                            const explanationDiv = card.querySelector('.explanation-div');
+                            input.value = this.quizData[index].userAnswer || '';
+                            input.disabled = true;
+                            input.classList.add(status === 'correct' ? 'correct' : 'incorrect');
+                            explanationDiv.innerHTML = `<strong>Đáp án gợi ý:</strong><br>${question.explanation}`;
+                            explanationDiv.classList.remove('hidden');
+                            card.querySelector('.check-btn')?.classList.add('hidden');
+                        }
+                        else if (question.type === 'fill') {
+                            const userAnswers = this.quizData[index].userAnswers || [];
+                            question.fills.forEach((fill, f_index) => {
+                                const input = card.querySelector(`input[data-index='${f_index}']`);
+                                const userAnswer = userAnswers[f_index] || '';
+                                input.value = userAnswer;
+                                input.disabled = true;
+                                
+                                const correctAnswers = fill.a.trim().toLowerCase().split('(hoặc').map(s => s.replace(')', '').trim());
+                                if (correctAnswers.includes(userAnswer.toLowerCase())) {
+                                    input.classList.add('correct');
+                                } else {
+                                    input.classList.add('incorrect');
+                                }
+                            });
+                            card.querySelector('.check-btn')?.classList.add('hidden');
+                        }
+                    }
+                });
+
+                this.updateProgress();
+            }
+
+            // --- CÁC HÀM TẠO CÂU HỎI ---
+            createMultipleChoice(question, index, card) {
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'space-y-3';
+                
+                question.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.innerText = option;
+                    button.className = 'option-btn w-full text-left p-4 my-2 rounded-lg border border-gray-300 hover:bg-gray-100';
+                    // Gán sự kiện check
+                    button.onclick = () => this.checkMultipleChoice(button, option, question.answer, index);
+                    optionsContainer.appendChild(button);
+                });
+                card.appendChild(optionsContainer);
+            }
+            
+            createTrueFalse(question, index, card) {
+                const statementsContainer = document.createElement('div');
+                statementsContainer.className = 'space-y-4';
+
+                question.statements.forEach((statement, s_index) => {
+                    const group = document.createElement('div');
+                    group.className = 'p-4 border border-gray-200 rounded-lg';
+                    group.innerHTML = `<p class="mb-3 font-medium">${statement.text}</p>`;
+
+                    const buttonGroup = document.createElement('div');
+                    buttonGroup.className = 'flex gap-4';
+                    
+                    const trueId = `tf-${this.instanceId}-${index}-${s_index}-true`;
+                    const falseId = `tf-${this.instanceId}-${index}-${s_index}-false`;
+                    const name = `tf-group-${this.instanceId}-${index}-${s_index}`;
+
+                    buttonGroup.innerHTML = `
+                        <input type="radio" id="${trueId}" name="${name}" value="true" class="tf-input">
+                        <label for="${trueId}" class="tf-label">Đúng</label>
+                        <input type="radio" id="${falseId}" name="${name}" value="false" class="tf-input">
+                        <label for="${falseId}" class="tf-label">Sai</label>
+                    `;
+                    
+                    group.appendChild(buttonGroup);
+                    statementsContainer.appendChild(group);
+                });
+                card.appendChild(statementsContainer);
+                
+                const checkBtn = document.createElement('button');
+                checkBtn.innerText = 'Kiểm tra';
+                checkBtn.className = 'check-btn mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200';
+                checkBtn.onclick = () => this.checkTrueFalse(question, index);
+                card.appendChild(checkBtn);
+            }
+            
+            createShortAnswer(question, index, card) {
+                const input = document.createElement('textarea');
+                input.className = 'short-answer-input w-full p-3 border border-gray-300 rounded-lg h-32 focus:ring-2 focus:ring-blue-500 focus:outline-none';
+                input.placeholder = 'Nhập câu trả lời của bạn...';
+                card.appendChild(input);
+                
+                const checkBtn = document.createElement('button');
+                checkBtn.innerText = 'Kiểm tra';
+                checkBtn.className = 'check-btn mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200';
+                checkBtn.onclick = () => this.checkShortAnswer(question, index);
+                card.appendChild(checkBtn);
+                
+                const explanationDiv = document.createElement('div');
+                explanationDiv.className = 'explanation-div mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 hidden';
+                card.appendChild(explanationDiv);
+            }
+            
+            createFillInBlank(question, index, card) {
+                const fillContainer = document.createElement('div');
+                fillContainer.className = 'space-y-3';
+                
+                question.fills.forEach((fill, f_index) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex flex-wrap items-center gap-2';
+                    div.innerHTML = `
+                        <label class="font-medium">${fill.q}</label>
+                        <input type="text" data-index="${f_index}" class="short-answer-input w-24 p-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <span class="font-medium">${fill.s}</span>
+                    `;
+                    fillContainer.appendChild(div);
+                });
+                card.appendChild(fillContainer);
+                
+                const checkBtn = document.createElement('button');
+                checkBtn.innerText = 'Kiểm tra';
+                checkBtn.className = 'check-btn mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-200';
+                checkBtn.onclick = () => this.checkFillInBlank(question, index);
+                card.appendChild(checkBtn);
+            }
+
+            // --- CÁC HÀM KIỂM TRA ĐÁP ÁN ---
+            // (index là index trong instance này)
+            checkMultipleChoice(clickedButton, selectedOption, correctAnswer, index) {
+                if (this.questionStatus[index] !== null) return;
+
+                const card = clickedButton.closest('.quiz-card');
+                const allButtons = card.querySelectorAll('.option-btn');
+                allButtons.forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.innerText === correctAnswer) btn.classList.add('correct');
+                });
+                
+                // Lưu tiến độ sau khi trả lời
+
+                // Lưu lại lựa chọn của người dùng
+                this.quizData[index].selectedOption = selectedOption;
+                
+                if (selectedOption === correctAnswer) {
+                    clickedButton.classList.add('correct');
+                    this.questionStatus[index] = 'correct';
+                    this.incorrectQuestions.delete(index);
+                } else {
+                    clickedButton.classList.add('incorrect');
+                    this.questionStatus[index] = 'incorrect';
+                    this.incorrectQuestions.add(index);
+                    // *** THÊM VÀO LỊCH SỬ LỖI SAI TOÀN CỤC ***
+                    this.markAsWrongInHistory(index);
+                }
+                this.updateProgress();
+            }
+            
+            checkTrueFalse(question, index) {
+                if (this.questionStatus[index] !== null) return;
+                const card = this.container.querySelector(`.quiz-card[data-index='${index}']`);
+                let allCorrect = true;
+                
+                // Lưu các lựa chọn của người dùng
+                if (!this.quizData[index].userAnswers) {
+                    this.quizData[index].userAnswers = [];
+                }
+                
+                question.statements.forEach((statement, s_index) => {
+                    const name = `tf-group-${this.instanceId}-${index}-${s_index}`;
+                    const selectedRadio = card.querySelector(`input[name='${name}']:checked`);
+                    const trueLabel = card.querySelector(`label[for='tf-${this.instanceId}-${index}-${s_index}-true']`);
+                    const falseLabel = card.querySelector(`label[for='tf-${this.instanceId}-${index}-${s_index}-false']`);
+                    
+                    let userAnswer = (selectedRadio) ? (selectedRadio.value === 'true') : null;
+                    if (userAnswer === null) allCorrect = false;
+                    
+                    // Lưu lựa chọn của người dùng
+                    this.quizData[index].userAnswers[s_index] = userAnswer;
+                    
+                    if (statement.answer === true) {
+                        trueLabel.classList.add('correct');
+                        if (userAnswer === false) { falseLabel.classList.add('incorrect'); allCorrect = false; }
+                    } else {
+                        falseLabel.classList.add('correct');
+                        if (userAnswer === true) { trueLabel.classList.add('incorrect'); allCorrect = false; }
+                    }
+                    
+                    card.querySelector(`#tf-${this.instanceId}-${index}-${s_index}-true`).disabled = true;
+                    card.querySelector(`#tf-${this.instanceId}-${index}-${s_index}-false`).disabled = true;
+                });
+                
+                card.querySelector('.check-btn').classList.add('hidden');
+                
+                if (allCorrect) {
+                    this.questionStatus[index] = 'correct';
+                    this.incorrectQuestions.delete(index);
+                } else {
+                    this.questionStatus[index] = 'incorrect';
+                    this.incorrectQuestions.add(index);
+                    this.markAsWrongInHistory(index);
+                }
+                this.updateProgress();
+            }
+
+            checkShortAnswer(question, index) {
+                if (this.questionStatus[index] !== null) return;
+                const card = this.container.querySelector(`.quiz-card[data-index='${index}']`);
+                const input = card.querySelector('textarea');
+                const userAnswer = input.value.toLowerCase().trim().replace(/-\s/g, '');
+                input.disabled = true;
+
+                // Lưu câu trả lời của người dùng
+                this.quizData[index].userAnswer = input.value;
+
+                let allKeywordsFound = (userAnswer !== "") && question.keywords.every(keyword => userAnswer.includes(keyword.toLowerCase()));
+
+                const explanationDiv = card.querySelector('.explanation-div');
+                explanationDiv.innerHTML = `<strong>Đáp án gợi ý:</strong><br>${question.explanation}`;
+                explanationDiv.classList.remove('hidden');
+                card.querySelector('.check-btn').classList.add('hidden');
+
+                if (allKeywordsFound) {
+                    input.classList.add('correct');
+                    this.questionStatus[index] = 'correct';
+                    this.incorrectQuestions.delete(index);
+                } else {
+                    input.classList.add('incorrect');
+                    this.questionStatus[index] = 'incorrect';
+                    this.incorrectQuestions.add(index);
+                    // *** THÊM VÀO LỊCH SỬ LỖI SAI TOÀN CỤC ***
+                    this.markAsWrongInHistory(index);
+                }
+                this.updateProgress();
+            }
+            
+            checkFillInBlank(question, index) {
+                if (this.questionStatus[index] !== null) return;
+                const card = this.container.querySelector(`.quiz-card[data-index='${index}']`);
+                let allCorrect = true;
+                
+                // Lưu các lựa chọn của người dùng
+                if (!this.quizData[index].userAnswers) {
+                    this.quizData[index].userAnswers = [];
+                }
+
+                question.fills.forEach((fill, f_index) => {
+                    const input = card.querySelector(`input[data-index='${f_index}']`);
+                    const userAnswer = input.value.trim().toLowerCase();
+                    const correctAnswer = fill.a.trim().toLowerCase();
+                    input.disabled = true;
+                    
+                    // Lưu lựa chọn
+                    this.quizData[index].userAnswers[f_index] = userAnswer;
+
+                    // Cho phép nhiều đáp án (ví dụ: "0.1 cm" hoặc "1 mm")
+                    const correctAnswers = correctAnswer.split('(hoặc').map(s => s.replace(')', '').trim());
+                    
+                    if (correctAnswers.includes(userAnswer)) {
+                        input.classList.add('correct');
+                    } else {
+                        input.classList.add('incorrect');
+                        allCorrect = false;
+                    }
+                });
+                
+                card.querySelector('.check-btn').classList.add('hidden');
+                
+                if (allCorrect) {
+                    this.questionStatus[index] = 'correct';
+                    this.incorrectQuestions.delete(index);
+                } else {
+                    this.questionStatus[index] = 'incorrect';
+                    this.incorrectQuestions.add(index);
+                    // *** THÊM VÀO LỊCH SỬ LỖI SAI TOÀN CỤC ***
+                    this.markAsWrongInHistory(index);
+                }
+                this.updateProgress();
+            }
+
+            /**
+             * Đánh dấu câu hỏi là sai trong Lịch sử toàn cục và cập nhật các tab liên quan.
+             */
+            markAsWrongInHistory(localIndex) {
+                const originalIndex = this.quizData[localIndex].originalIndex;
+                const isNewWrongAnswer = !wrongQuestionHistory.has(originalIndex);
+
+                if (isNewWrongAnswer) {
+                    wrongQuestionHistory.add(originalIndex);
+                    saveWrongHistory(); // Lưu vào localStorage
+
+                    // Khi có một câu trả lời sai mới, chúng ta cần cập nhật các tab phụ.
+                    // Điều này sẽ đảm bảo tab "Hay Sai" và "Làm Lại" luôn được cập nhật.
+                    
+                    // Xóa tiến độ đã lưu của tab "Làm Lại" để buộc nó phải tạo lại hoàn toàn
+                    // với danh sách câu hỏi mới, tránh lỗi tải sai tiến độ cũ.
+                    localStorage.removeItem('quiz-progress-quiz-container-redo');
+                    
+                    renderWrongHistoryTab();
+                    renderRedoMcTab();
+                }
+                
+                // Luôn lưu tiến độ của tab hiện tại, bất kể câu trả lời là mới hay không.
+                saveProgress(this);
+            }
+            
+            // --- CÁC HÀM TIỆN ÍCH CỦA INSTANCE ---
+            resetQuestion(index) {
+                const card = this.container.querySelector(`.quiz-card[data-index='${index}']`);
+                if (!card) return;
+                
+                const wasIncorrect = this.questionStatus[index] === 'incorrect';
+                this.questionStatus[index] = null;
+                if (wasIncorrect) {
+                    this.incorrectQuestions.delete(index);
+                }
+                
+                card.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.classList.remove('correct', 'incorrect'); btn.disabled = false;
+                });
+                card.querySelectorAll('.tf-input').forEach(input => {
+                    input.checked = false; input.disabled = false;
+                });
+                card.querySelectorAll('.tf-label').forEach(label => {
+                    label.classList.remove('correct', 'incorrect');
+                });
+                card.querySelectorAll('textarea').forEach(input => {
+                    input.value = ''; input.disabled = false; input.classList.remove('correct', 'incorrect');
+                });
+                card.querySelectorAll('.explanation-div').forEach(div => {
+                    div.classList.add('hidden'); div.innerHTML = '';
+                });
+                card.querySelectorAll('input[type="text"]').forEach(input => {
+                    input.value = ''; input.disabled = false; input.classList.remove('correct', 'incorrect');
+                });
+                card.querySelectorAll('.check-btn').forEach(btn => {
+                    btn.classList.remove('hidden');
+                });
+
+                this.updateProgress();
+            }
+
+            updateProgress() {
+                const completedCount = this.questionStatus.filter(s => s !== null).length;
+                this.progressText.innerText = `Đã hoàn thành: ${completedCount} / ${this.quizData.length}`;
+                
+                const incorrectCount = this.incorrectQuestions.size;
+                this.scoreTracker.innerText = `Câu sai: ${incorrectCount}`;
+                
+                // Lưu tiến độ sau mỗi lần cập nhật
+                saveProgress(this);
+            }
+
+            shuffle() {
+                this.quizData.sort(() => Math.random() - 0.5);
+                this.quizData.forEach(question => {
+                    if (question.type === 'mc' && question.options) {
+                        question.options.sort(() => Math.random() - 0.5);
+                    }
+                    if (question.type === 'tf' && question.statements) {
+                        question.statements.sort(() => Math.random() - 0.5);
+                    }
+                });
+                this.init();
+            }
+
+            reset() {
+                localStorage.removeItem(`quiz-progress-${this.instanceId}`);
+                this.quizData = JSON.parse(JSON.stringify(this.originalData));
+                this.questionStatus = new Array(this.quizData.length).fill(null);
+                this.incorrectQuestions.clear();
+                this.init();
+            }
+        } // --- HẾT LỚP QUIZ ---
+
+
+        // --- CÁC HÀM QUẢN LÝ TAB VÀ LỊCH SỬ ---
+
+        /**
+         * Tải lịch sử lỗi sai từ localStorage
+         */
+        function loadWrongHistory() {
+            const storedHistory = localStorage.getItem('wrongQuestionIndices');
+            if (storedHistory) {
+                wrongQuestionHistory = new Set(JSON.parse(storedHistory));
+            } else {
+                wrongQuestionHistory = new Set();
+            }
+        }
+
+        /**
+         * Lưu lịch sử lỗi sai vào localStorage
+         */
+        function saveWrongHistory() {
+            localStorage.setItem('wrongQuestionIndices', JSON.stringify(Array.from(wrongQuestionHistory)));
+            // Cập nhật số đếm trên tab "Hay Sai"
+            document.getElementById('wrong-history-count').innerText = wrongQuestionHistory.size;
+        }
+
+        /**
+         * Xóa toàn bộ lịch sử lỗi sai
+         */
+        function clearWrongHistory() {
+            if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử lỗi sai không? Hành động này không thể hoàn tác.')) {
+                wrongQuestionHistory.clear();
+                saveWrongHistory();
+
+                // Xóa tiến độ đã lưu của tab "Làm Lại" để đảm bảo nó được làm mới hoàn toàn.
+                localStorage.removeItem('quiz-progress-quiz-container-redo');
+
+                renderWrongHistoryTab();
+                renderRedoMcTab();
+            }
+        }
+
+        /**
+         * Vẽ nội dung cho tab "Những Câu Hay Sai" (TĨNH)
+         */
+        function renderWrongHistoryTab() {
+            const container = document.getElementById('quiz-container-wrong');
+            container.innerHTML = '';
+            document.getElementById('wrong-history-count').innerText = wrongQuestionHistory.size;
+
+            if (wrongQuestionHistory.size === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 italic">Tuyệt vời! Bạn chưa làm sai câu nào.</p>`;
+                return;
+            }
+
+            for (const index of wrongQuestionHistory) {
+                const question = originalQuizData[index]; // Lấy từ data gốc, không có index
+                if (!question) continue;
+
+                const card = document.createElement('div');
+                card.className = 'static-card';
+                
+                let contentHtml = '';
+                if (question.type === 'mc') {
+                    question.options.forEach(option => {
+                        const isCorrect = (option === question.answer);
+                        contentHtml += `<div class="static-card-option ${isCorrect ? 'correct' : ''}">${option}</div>`;
+                    });
+                }
+                else {
+                    // Hiển thị đáp án cho các loại khác
+                    if (question.explanation) {
+                        contentHtml = `<div class="static-card-option correct !text-left !font-normal"><strong>Đáp án:</strong><br>${question.explanation}</div>`;
+                    } else if (question.type === 'tf') {
+                        contentHtml = '<div class="static-card-option !text-left !font-normal"><ul>';
+                        question.statements.forEach(s => {
+                            contentHtml += `<li><strong>${s.text}:</strong> ${s.answer ? 'Đúng' : 'Sai'}</li>`;
+                        });
+                        contentHtml += '</ul></div>';
+                    } else if (question.type === 'fill') {
+                        contentHtml = '<div class="static-card-option !text-left !font-normal"><ul>';
+                        question.fills.forEach(f => {
+                            contentHtml += `<li><strong>${f.q}</strong> ${f.a} ${f.s}</li>`;
+                        });
+                        contentHtml += '</ul></div>';
+                    }
+                }
+
+                card.innerHTML = `
+                    <h2 class="text-xl font-semibold mb-4">${question.question}</h2>
+                    <div>${contentHtml}</div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        /**
+         * Vẽ nội dung cho tab "Làm Lại Câu Sai (MC)" (TƯƠNG TÁC)
+         */
+        function renderRedoMcTab() {
+            // Lọc các câu MC bị sai từ dữ liệu gốc
+            const redoData = originalDataWithIndices.filter(q => 
+                q.type === 'mc' && wrongQuestionHistory.has(q.originalIndex)
+            );
+
+            // Nếu có quiz làm lại cũ, hủy nó đi
+            if (redoQuiz) {
+                redoQuiz.container.innerHTML = '';
+                redoQuiz = null;
+            }
+            
+            // Tạo một instance Quiz mới cho các câu hỏi này
+            redoQuiz = new Quiz(
+                redoData,
+                'quiz-container-redo',
+                'progress-text-redo',
+                'score-tracker-redo'
+            );
+            redoQuiz.init();
+        }
+
+        /**
+         * Chuyển đổi giữa các tab
+         */
+        function showTab(tabName) {
+            // Ẩn tất cả panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            // Bỏ active tất cả tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Ẩn tất cả sub-headers
+            document.querySelectorAll('.subheader-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Hiển thị panel và button được chọn
+            document.getElementById(`tab-panel-${tabName}`).classList.add('active');
+            document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+
+            // Hiển thị sub-header được chọn
+            document.getElementById(`subheader-${tabName}`).classList.add('active');
+
+            // Tải nội dung cho tab nếu cần
+            if (tabName === 'wrong') {
+                renderWrongHistoryTab();
+            } else if (tabName === 'redo') {
+                // Đã được render tự động ở background, không cần render lại ở đây
+                // renderRedoMcTab();
+            }
+        }
+
+        // --- KHỞI ĐỘNG KHI TẢI TRANG ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWrongHistory(); // Tải lịch sử lỗi sai
+
+            // --- Gắn sự kiện cho các nút điều khiển ---
+            // Tab 1 (Tất Cả)
+            document.getElementById('shuffle-btn').addEventListener('click', () => mainQuiz.shuffle());
+            document.getElementById('total-reset-btn').addEventListener('click', () => mainQuiz.reset());
+            // Tab 2 (Hay Sai)
+            document.getElementById('clear-history-btn').addEventListener('click', clearWrongHistory);
+            
+            // *** GẮN SỰ KIỆN CHO TAB 3 ***
+            document.getElementById('shuffle-btn-redo').addEventListener('click', () => {
+                if (redoQuiz) {
+                    redoQuiz.shuffle();
+                }
+            });
+            document.getElementById('reset-btn-redo').addEventListener('click', () => {
+                if (redoQuiz) {
+                    redoQuiz.reset();
+                }
+            });
+            
+            // --- Gắn sự kiện cho các nút Tab ---
+            document.getElementById('tab-btn-all').addEventListener('click', () => showTab('all'));
+            document.getElementById('tab-btn-wrong').addEventListener('click', () => showTab('wrong'));
+            document.getElementById('tab-btn-redo').addEventListener('click', () => showTab('redo'));
+
+            // --- Khởi tạo Quiz chính (Tab "Tất Cả") ---
+            mainQuiz = new Quiz(
+                originalDataWithIndices, // Dùng data đã có index gốc
+                'quiz-container-all',
+                'progress-text-all',
+                'score-tracker-all'
+            );
+            mainQuiz.init();
+            
+            // Cập nhật số đếm ban đầu
+            document.getElementById('wrong-history-count').innerText = wrongQuestionHistory.size;
+
+            // Khởi tạo các tab ẩn để sẵn sàng
+            renderWrongHistoryTab();
+            renderRedoMcTab();
+        });
+
+    </script>
+</body>
+</html>
